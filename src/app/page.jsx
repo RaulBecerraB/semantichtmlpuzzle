@@ -37,8 +37,8 @@ const HtmlPuzzle = () => {
   }, [pieces])
 
   return (
-    <div className="h-screen bg-gray-100 p-4">
-      <div className="h-full max-w-3xl mx-auto flex flex-col">
+    <div className="h-screen bg-gray-100 p-2">
+      <div className="h-full max-w-sm mx-auto flex flex-col">
         <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
           HTML Semántico Puzzle
         </h1>
