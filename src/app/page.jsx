@@ -15,18 +15,44 @@ const HtmlPuzzle = () => {
   const [placedPieces, setPlacedPieces] = useState({})
   const [draggedPiece, setDraggedPiece] = useState(null)
   const [isComplete, setIsComplete] = useState(false)
+  const [hasError, setHasError] = useState(false)
+  const [showMessage, setShowMessage] = useState(false)
 
-  const handleDragStart = (e, piece) => {
-    setDraggedPiece(piece)
+  const handleDragStart = (e, piece, fromArea = null) => {
+    setDraggedPiece({ ...piece, fromArea })
   }
 
   const handleDrop = (e, targetId) => {
     e.preventDefault()
     if (draggedPiece) {
-      setPlacedPieces(prev => ({
-        ...prev,
-        [targetId]: draggedPiece
-      }))
+      // Si la pieza viene de otra área y se arrastra a la zona de piezas disponibles
+      if (draggedPiece.fromArea && targetId === 'available') {
+        setPlacedPieces(prev => {
+          const newPlaced = { ...prev }
+          delete newPlaced[draggedPiece.fromArea]
+          return newPlaced
+        })
+      }
+      // Si la pieza viene de otra área y se arrastra a otra área del puzzle
+      else if (draggedPiece.fromArea) {
+        setPlacedPieces(prev => {
+          const newPlaced = { ...prev }
+          delete newPlaced[draggedPiece.fromArea]
+          return {
+            ...newPlaced,
+            [targetId]: draggedPiece
+          }
+        })
+      }
+      // Si viene del panel de piezas disponibles
+      else {
+        setPlacedPieces(prev => ({
+          ...prev,
+          [targetId]: draggedPiece
+        }))
+      }
+      // Ocultar mensajes cuando se hace un cambio
+      setShowMessage(false)
     }
   }
 
@@ -34,9 +60,39 @@ const HtmlPuzzle = () => {
     e.preventDefault()
   }
 
-  useEffect(() => {
-    setIsComplete(pieces.every(piece => piece.correct))
-  }, [pieces])
+  // Verificar si todas las piezas están en el lugar correcto
+  const checkPuzzle = () => {
+    // Comprobar si cada área tiene la pieza correcta (id de la pieza === id del área)
+    const isCorrect = Object.entries(placedPieces).every(
+      ([areaId, piece]) => piece.id === areaId
+    );
+
+    setIsComplete(isCorrect);
+    setHasError(!isCorrect);
+    setShowMessage(true);
+  }
+
+  // Renderizar una pieza colocada en una zona
+  const renderPlacedPiece = (areaId, height, bgColor) => {
+    const piece = placedPieces[areaId]
+    return (
+      <div
+        onDrop={(e) => handleDrop(e, areaId)}
+        onDragOver={handleDragOver}
+        className={`${height} rounded ${piece ? bgColor : 'bg-gray-200'} flex items-center justify-center text-sm`}
+      >
+        {piece ? (
+          <div
+            draggable
+            onDragStart={(e) => handleDragStart(e, piece, areaId)}
+            className="w-full h-full flex items-center justify-center cursor-move"
+          >
+            {piece.label}
+          </div>
+        ) : '?'}
+      </div>
+    )
+  }
 
   return (
     <div className="h-screen bg-gray-100 p-2">
@@ -45,19 +101,31 @@ const HtmlPuzzle = () => {
           HTML Semántico Puzzle
         </h1>
 
-        {isComplete ? (
-          <div className="text-center p-2 bg-green-100 rounded-lg mb-2">
-            <p className="text-green-700">¡Felicitaciones! Has completado el puzzle correctamente.</p>
-          </div>
-        ) : (
+        {showMessage && (
+          isComplete ? (
+            <div className="text-center p-2 bg-green-100 rounded-lg mb-2">
+              <p className="text-green-700">¡Felicitaciones! Has completado el puzzle correctamente.</p>
+            </div>
+          ) : hasError ? (
+            <div className="text-center p-2 bg-red-100 rounded-lg mb-2">
+              <p className="text-red-700">Hay un error en tu solución. Revisa la posición de los elementos HTML.</p>
+            </div>
+          ) : null
+        )}
+
+        {!showMessage && (
           <div className="text-center p-2 bg-blue-100 rounded-lg mb-2">
             <p className="text-blue-700 text-sm">Arrastra cada elemento a su posición correcta.</p>
           </div>
         )}
 
-        <div className="flex gap-4 h-[calc(100%-8rem)]">
+        <div className="flex gap-4 h-[calc(100%-10rem)]">
           {/* Panel izquierdo con piezas arrastrables */}
-          <div className="w-48 bg-white p-4 rounded-lg shadow-lg">
+          <div
+            className="w-48 bg-white p-4 rounded-lg shadow-lg"
+            onDrop={(e) => handleDrop(e, 'available')}
+            onDragOver={handleDragOver}
+          >
             <h2 className="text-sm font-semibold text-gray-700 mb-2">Piezas disponibles</h2>
             <div className="space-y-2">
               {pieces.filter(piece => !Object.values(placedPieces).some(placed => placed.id === piece.id)).map(piece => (
@@ -74,84 +142,40 @@ const HtmlPuzzle = () => {
           </div>
 
           {/* Panel derecho con el puzzle */}
-          <div className="flex-1 bg-white p-4 rounded-lg shadow-lg">
-            <div className="grid gap-2 h-full" style={{ gridTemplateRows: 'auto auto 1fr auto' }}>
+          <div className="flex-1 bg-white p-4 rounded-lg shadow-lg flex flex-col">
+            <div className="grid gap-2 flex-grow" style={{ gridTemplateRows: 'auto auto 1fr auto' }}>
               {/* Header */}
-              <div
-                onDrop={(e) => handleDrop(e, 'header')}
-                onDragOver={handleDragOver}
-                className={`h-12 rounded ${placedPieces['header']
-                  ? 'bg-blue-100'
-                  : 'bg-gray-200'
-                  } flex items-center justify-center text-sm`}
-              >
-                {placedPieces['header'] ? placedPieces['header'].label : '?'}
-              </div>
+              {renderPlacedPiece('header', 'h-12', 'bg-blue-100')}
 
               {/* Nav */}
-              <div
-                onDrop={(e) => handleDrop(e, 'nav')}
-                onDragOver={handleDragOver}
-                className={`h-10 rounded ${placedPieces['nav']
-                  ? 'bg-pink-100'
-                  : 'bg-gray-200'
-                  } flex items-center justify-center text-sm`}
-              >
-                {placedPieces['nav'] ? placedPieces['nav'].label : '?'}
-              </div>
+              {renderPlacedPiece('nav', 'h-10', 'bg-pink-100')}
 
               {/* Main content */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-2 space-y-2">
                   {/* Section */}
-                  <div
-                    onDrop={(e) => handleDrop(e, 'section')}
-                    onDragOver={handleDragOver}
-                    className={`h-28 rounded ${placedPieces['section']
-                      ? 'bg-green-100'
-                      : 'bg-gray-200'
-                      } flex items-center justify-center text-sm`}
-                  >
-                    {placedPieces['section'] ? placedPieces['section'].label : '?'}
-                  </div>
+                  {renderPlacedPiece('section', 'h-28', 'bg-green-100')}
 
                   {/* Article */}
-                  <div
-                    onDrop={(e) => handleDrop(e, 'article')}
-                    onDragOver={handleDragOver}
-                    className={`h-28 rounded ${placedPieces['article']
-                      ? 'bg-purple-100'
-                      : 'bg-gray-200'
-                      } flex items-center justify-center text-sm`}
-                  >
-                    {placedPieces['article'] ? placedPieces['article'].label : '?'}
-                  </div>
+                  {renderPlacedPiece('article', 'h-28', 'bg-purple-100')}
                 </div>
 
                 {/* Aside */}
-                <div
-                  onDrop={(e) => handleDrop(e, 'aside')}
-                  onDragOver={handleDragOver}
-                  className={`rounded ${placedPieces['aside']
-                    ? 'bg-yellow-100'
-                    : 'bg-gray-200'
-                    } flex items-center justify-center text-sm`}
-                >
-                  {placedPieces['aside'] ? placedPieces['aside'].label : '?'}
-                </div>
+                {renderPlacedPiece('aside', 'h-full', 'bg-yellow-100')}
               </div>
 
               {/* Footer */}
-              <div
-                onDrop={(e) => handleDrop(e, 'footer')}
-                onDragOver={handleDragOver}
-                className={`h-12 rounded ${placedPieces['footer']
-                  ? 'bg-green-50'
-                  : 'bg-gray-200'
-                  } flex items-center justify-center text-sm`}
+              {renderPlacedPiece('footer', 'h-12', 'bg-green-50')}
+            </div>
+
+            {/* Botón de calificación */}
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={checkPuzzle}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
-                {placedPieces['footer'] ? placedPieces['footer'].label : '?'}
-              </div>
+                Calificar
+              </button>
             </div>
           </div>
         </div>
