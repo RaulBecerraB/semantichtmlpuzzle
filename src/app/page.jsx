@@ -64,10 +64,17 @@ const HtmlPuzzle = () => {
 
   // Verificar si todas las piezas están en el lugar correcto
   const checkPuzzle = () => {
-    // Comprobar si cada área tiene la pieza correcta (id de la pieza === id del área)
-    const isCorrect = Object.entries(placedPieces).every(
+    // Verificamos que todas las áreas tengan una pieza
+    const allAreasHavePieces = ['header', 'nav', 'section', 'article', 'aside', 'footer']
+      .every(area => area in placedPieces);
+
+    // Verificamos que todas las piezas estén en su lugar correcto
+    const allPiecesCorrect = Object.entries(placedPieces).every(
       ([areaId, piece]) => piece.id === areaId
     );
+
+    // Solo está completo si todas las áreas tienen piezas Y todas están correctas
+    const isCorrect = allAreasHavePieces && allPiecesCorrect;
 
     setIsComplete(isCorrect);
     setHasError(!isCorrect);
