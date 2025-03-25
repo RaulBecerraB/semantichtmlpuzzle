@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from 'react'
 
+// Estilos para evitar la selección de texto durante el arrastre
+const noSelectStyle = {
+  WebkitUserSelect: 'none',
+  MozUserSelect: 'none',
+  msUserSelect: 'none',
+  userSelect: 'none',
+}
+
 const HtmlPuzzle = () => {
   const [pieces, setPieces] = useState([
     { id: 'header', label: '<header>', correct: false },
@@ -89,12 +97,14 @@ const HtmlPuzzle = () => {
         onDrop={(e) => handleDrop(e, areaId)}
         onDragOver={handleDragOver}
         className={`${height} rounded ${piece ? bgColor : 'bg-gray-200'} flex items-center justify-center text-sm`}
+        style={noSelectStyle}
       >
         {piece ? (
           <div
             draggable
             onDragStart={(e) => handleDragStart(e, piece, areaId)}
             className="w-full h-full flex items-center justify-center cursor-move"
+            style={noSelectStyle}
           >
             {piece.label}
           </div>
@@ -104,7 +114,7 @@ const HtmlPuzzle = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-100 p-2">
+    <div className="h-screen bg-gray-100 p-2" style={noSelectStyle}>
       <div className="h-full max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
           HTML Semántico Puzzle
@@ -134,24 +144,37 @@ const HtmlPuzzle = () => {
             className="w-48 bg-white p-4 rounded-lg shadow-lg"
             onDrop={(e) => handleDrop(e, 'available')}
             onDragOver={handleDragOver}
+            style={noSelectStyle}
           >
             <h2 className="text-sm font-semibold text-gray-700 mb-2">Piezas disponibles</h2>
-            <div className="space-y-2">
+            <div className="space-y-2 mb-4">
               {pieces.filter(piece => !Object.values(placedPieces).some(placed => placed.id === piece.id)).map(piece => (
                 <div
                   key={piece.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, piece)}
                   className="bg-white px-3 py-1 rounded shadow cursor-move hover:bg-gray-50 transition-colors text-sm"
+                  style={noSelectStyle}
                 >
                   {piece.label}
                 </div>
               ))}
             </div>
+
+            {/* Botón de calificación */}
+            <div className="mt-auto">
+              <button
+                onClick={checkPuzzle}
+                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                style={noSelectStyle}
+              >
+                Calificar
+              </button>
+            </div>
           </div>
 
           {/* Panel derecho con el puzzle */}
-          <div className="flex-1 bg-white p-4 rounded-lg shadow-lg flex flex-col">
+          <div className="flex-1 bg-white p-4 rounded-lg shadow-lg flex flex-col" style={noSelectStyle}>
             <div className="grid gap-2 flex-grow" style={{ gridTemplateRows: 'auto auto 1fr auto' }}>
               {/* Header */}
               {renderPlacedPiece('header', 'h-12', 'bg-blue-100')}
@@ -175,16 +198,6 @@ const HtmlPuzzle = () => {
 
               {/* Footer */}
               {renderPlacedPiece('footer', 'h-12', 'bg-green-50')}
-            </div>
-
-            {/* Botón de calificación */}
-            <div className="mt-4 flex justify-center">
-              <button
-                onClick={checkPuzzle}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Calificar
-              </button>
             </div>
           </div>
         </div>
