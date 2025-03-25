@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Confetti from 'react-confetti'
 
 // Estilos para evitar la selección de texto durante el arrastre
 const noSelectStyle = {
@@ -8,6 +9,16 @@ const noSelectStyle = {
   MozUserSelect: 'none',
   msUserSelect: 'none',
   userSelect: 'none',
+}
+
+// Estilo para la animación de vibración
+const shakeAnimation = {
+  animation: 'shake 0.8s cubic-bezier(.36,.07,.19,.97) both',
+  '@keyframes shake': {
+    '0%, 100%': { transform: 'translateX(0)' },
+    '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-12px)' },
+    '20%, 40%, 60%, 80%': { transform: 'translateX(12px)' },
+  },
 }
 
 const HtmlPuzzle = () => {
@@ -25,6 +36,41 @@ const HtmlPuzzle = () => {
   const [isComplete, setIsComplete] = useState(false)
   const [hasError, setHasError] = useState(false)
   const [showMessage, setShowMessage] = useState(false)
+  const [shakeScreen, setShakeScreen] = useState(false) // Estado para controlar la vibración
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0
+  })
+
+  // Actualizar las dimensiones de la ventana cuando cambia el tamaño
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize)
+      return () => window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  // Efecto para controlar la animación de vibración
+  useEffect(() => {
+    if (hasError) {
+      // Activar animación de vibración
+      setShakeScreen(true)
+
+      // Desactivar la animación después de que termine
+      const timer = setTimeout(() => {
+        setShakeScreen(false)
+      }, 800) // Aumentamos a 800ms para una vibración más larga
+
+      return () => clearTimeout(timer)
+    }
+  }, [hasError])
 
   const handleDragStart = (e, piece, fromArea = null) => {
     setDraggedPiece({ ...piece, fromArea })
@@ -87,6 +133,18 @@ const HtmlPuzzle = () => {
     setIsComplete(isCorrect);
     setHasError(!isCorrect);
     setShowMessage(true);
+
+    // Si hay error, asegurarnos de que la vibración sea notoria
+    if (!isCorrect) {
+      // Activar vibración mediante CSS y también usando el estado
+      setShakeScreen(true);
+      document.querySelector('.h-screen').classList.add('animate-shake');
+
+      setTimeout(() => {
+        setShakeScreen(false);
+        document.querySelector('.h-screen').classList.remove('animate-shake');
+      }, 800);
+    }
   }
 
   // Renderizar una pieza colocada en una zona
@@ -114,8 +172,35 @@ const HtmlPuzzle = () => {
   }
 
   return (
-    <div className="h-screen bg-gray-100 p-2" style={noSelectStyle}>
-      <div className="h-full max-w-4xl mx-auto">
+    <div
+      className={`h-screen bg-gray-100 p-2 relative ${shakeScreen ? 'animate-shake' : ''}`}
+      style={{
+        ...noSelectStyle,
+        ...(shakeScreen ? shakeAnimation : {}),
+      }}
+    >
+      {isComplete && (
+        <>
+          {/* Overlay borroso con mensaje de felicitación */}
+          <div className="absolute inset-0 backdrop-blur-sm bg-black/30 z-10 flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-2xl p-8 text-center max-w-md mx-auto transform animate-bounce-slow">
+              <h2 className="text-4xl font-bold text-green-600 mb-4">¡FELICIDADES!</h2>
+              <p className="text-xl text-gray-700">Has completado correctamente el puzzle de HTML Semántico</p>
+            </div>
+          </div>
+
+          {/* Confetti por encima del overlay */}
+          <Confetti
+            width={windowDimensions.width}
+            height={windowDimensions.height}
+            recycle={false}
+            numberOfPieces={500}
+            gravity={0.15}
+            style={{ position: 'fixed', top: 0, left: 0, zIndex: 20 }}
+          />
+        </>
+      )}
+      <div className={`h-full max-w-4xl mx-auto ${isComplete ? 'blur-sm' : ''}`}>
         <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
           HTML Semántico Puzzle
         </h1>
@@ -141,13 +226,13 @@ const HtmlPuzzle = () => {
         <div className="flex gap-4 h-[calc(100%-10rem)]">
           {/* Panel izquierdo con piezas arrastrables */}
           <div
-            className="w-48 bg-white p-4 rounded-lg shadow-lg"
+            className="w-48 bg-white p-4 rounded-lg shadow-lg flex flex-col"
             onDrop={(e) => handleDrop(e, 'available')}
             onDragOver={handleDragOver}
             style={noSelectStyle}
           >
             <h2 className="text-sm font-semibold text-gray-700 mb-2">Piezas disponibles</h2>
-            <div className="space-y-2 mb-4">
+            <div className="space-y-2 mb-4 flex-grow overflow-y-auto">
               {pieces.filter(piece => !Object.values(placedPieces).some(placed => placed.id === piece.id)).map(piece => (
                 <div
                   key={piece.id}
@@ -162,7 +247,7 @@ const HtmlPuzzle = () => {
             </div>
 
             {/* Botón de calificación */}
-            <div className="mt-auto">
+            <div className="mt-2">
               <button
                 onClick={checkPuzzle}
                 className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
