@@ -44,13 +44,15 @@ const HtmlPuzzle = () => {
           }
         })
       }
-      // Si viene del panel de piezas disponibles
-      else {
+      // Si viene del panel de piezas disponibles y no se suelta en el mismo panel
+      else if (targetId !== 'available') {
         setPlacedPieces(prev => ({
           ...prev,
           [targetId]: draggedPiece
         }))
       }
+      // Si se arrastra desde disponibles y se suelta en disponibles, no hacemos nada
+
       // Ocultar mensajes cuando se hace un cambio
       setShowMessage(false)
     }
