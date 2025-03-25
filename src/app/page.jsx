@@ -12,6 +12,7 @@ const HtmlPuzzle = () => {
     { id: 'footer', label: '<footer>', correct: false },
   ])
 
+  const [placedPieces, setPlacedPieces] = useState({})
   const [draggedPiece, setDraggedPiece] = useState(null)
   const [isComplete, setIsComplete] = useState(false)
 
@@ -21,10 +22,11 @@ const HtmlPuzzle = () => {
 
   const handleDrop = (e, targetId) => {
     e.preventDefault()
-    if (draggedPiece.id === targetId) {
-      setPieces(pieces.map(p =>
-        p.id === targetId ? { ...p, correct: true } : p
-      ))
+    if (draggedPiece) {
+      setPlacedPieces(prev => ({
+        ...prev,
+        [targetId]: draggedPiece
+      }))
     }
   }
 
@@ -58,7 +60,7 @@ const HtmlPuzzle = () => {
           <div className="w-48 bg-white p-4 rounded-lg shadow-lg">
             <h2 className="text-sm font-semibold text-gray-700 mb-2">Piezas disponibles</h2>
             <div className="space-y-2">
-              {pieces.filter(p => !p.correct).map(piece => (
+              {pieces.filter(piece => !Object.values(placedPieces).some(placed => placed.id === piece.id)).map(piece => (
                 <div
                   key={piece.id}
                   draggable
@@ -78,24 +80,24 @@ const HtmlPuzzle = () => {
               <div
                 onDrop={(e) => handleDrop(e, 'header')}
                 onDragOver={handleDragOver}
-                className={`h-12 rounded ${pieces.find(p => p.id === 'header')?.correct
-                  ? 'bg-blue-200'
+                className={`h-12 rounded ${placedPieces['header']
+                  ? 'bg-blue-100'
                   : 'bg-gray-200'
                   } flex items-center justify-center text-sm`}
               >
-                {pieces.find(p => p.id === 'header')?.correct ? '<header>' : '?'}
+                {placedPieces['header'] ? placedPieces['header'].label : '?'}
               </div>
 
               {/* Nav */}
               <div
                 onDrop={(e) => handleDrop(e, 'nav')}
                 onDragOver={handleDragOver}
-                className={`h-10 rounded ${pieces.find(p => p.id === 'nav')?.correct
-                  ? 'bg-pink-200'
+                className={`h-10 rounded ${placedPieces['nav']
+                  ? 'bg-pink-100'
                   : 'bg-gray-200'
                   } flex items-center justify-center text-sm`}
               >
-                {pieces.find(p => p.id === 'nav')?.correct ? '<nav>' : '?'}
+                {placedPieces['nav'] ? placedPieces['nav'].label : '?'}
               </div>
 
               {/* Main content */}
@@ -105,24 +107,24 @@ const HtmlPuzzle = () => {
                   <div
                     onDrop={(e) => handleDrop(e, 'section')}
                     onDragOver={handleDragOver}
-                    className={`h-28 rounded ${pieces.find(p => p.id === 'section')?.correct
-                      ? 'bg-green-200'
+                    className={`h-28 rounded ${placedPieces['section']
+                      ? 'bg-green-100'
                       : 'bg-gray-200'
                       } flex items-center justify-center text-sm`}
                   >
-                    {pieces.find(p => p.id === 'section')?.correct ? '<section>' : '?'}
+                    {placedPieces['section'] ? placedPieces['section'].label : '?'}
                   </div>
 
                   {/* Article */}
                   <div
                     onDrop={(e) => handleDrop(e, 'article')}
                     onDragOver={handleDragOver}
-                    className={`h-28 rounded ${pieces.find(p => p.id === 'article')?.correct
-                      ? 'bg-purple-200'
+                    className={`h-28 rounded ${placedPieces['article']
+                      ? 'bg-purple-100'
                       : 'bg-gray-200'
                       } flex items-center justify-center text-sm`}
                   >
-                    {pieces.find(p => p.id === 'article')?.correct ? '<article>' : '?'}
+                    {placedPieces['article'] ? placedPieces['article'].label : '?'}
                   </div>
                 </div>
 
@@ -130,12 +132,12 @@ const HtmlPuzzle = () => {
                 <div
                   onDrop={(e) => handleDrop(e, 'aside')}
                   onDragOver={handleDragOver}
-                  className={`rounded ${pieces.find(p => p.id === 'aside')?.correct
-                    ? 'bg-yellow-200'
+                  className={`rounded ${placedPieces['aside']
+                    ? 'bg-yellow-100'
                     : 'bg-gray-200'
                     } flex items-center justify-center text-sm`}
                 >
-                  {pieces.find(p => p.id === 'aside')?.correct ? '<aside>' : '?'}
+                  {placedPieces['aside'] ? placedPieces['aside'].label : '?'}
                 </div>
               </div>
 
@@ -143,12 +145,12 @@ const HtmlPuzzle = () => {
               <div
                 onDrop={(e) => handleDrop(e, 'footer')}
                 onDragOver={handleDragOver}
-                className={`h-12 rounded ${pieces.find(p => p.id === 'footer')?.correct
-                  ? 'bg-green-100'
+                className={`h-12 rounded ${placedPieces['footer']
+                  ? 'bg-green-50'
                   : 'bg-gray-200'
                   } flex items-center justify-center text-sm`}
               >
-                {pieces.find(p => p.id === 'footer')?.correct ? '<footer>' : '?'}
+                {placedPieces['footer'] ? placedPieces['footer'].label : '?'}
               </div>
             </div>
           </div>
