@@ -15,7 +15,15 @@ const DebuggingChallenge = () => {
 resultado = calcular_promedio((10, 20, 30, 40))
 print(resultado)`)
 
-    const [fixedCode, setFixedCode] = useState('')
+    const [fixedCode, setFixedCode] = useState(`def calcular_promedio(numeros):
+    suma = 0
+    for i in range(len(numeros) + 1):
+        suma += numeros[i]
+    return suma / len(numeros)
+
+# Ejemplo de uso
+resultado = calcular_promedio((10, 20, 30, 40))
+print(resultado)`)
     const [isCorrect, setIsCorrect] = useState(false)
     const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
 
@@ -89,17 +97,13 @@ print(resultado)`
                 </div>
 
                 <div className="p-6">
-                    <div className="mb-6 bg-gray-800 text-green-400 p-4 rounded font-mono text-sm overflow-x-auto">
-                        <pre>{code}</pre>
-                    </div>
-
                     <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-2">Tu solución:</h2>
+                        <h2 className="text-xl font-semibold mb-4">Corrige el código (hay 2 errores):</h2>
                         <textarea
                             value={fixedCode}
                             onChange={(e) => setFixedCode(e.target.value)}
-                            className="w-full h-64 p-3 border border-gray-300 rounded font-mono"
-                            placeholder="Escribe aquí el código Python corregido..."
+                            className="w-full h-64 p-3 border border-gray-300 rounded font-mono bg-gray-800 text-green-400"
+                            placeholder="Corrige el código Python aquí..."
                         />
                     </div>
 
