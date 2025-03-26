@@ -24,7 +24,7 @@ const commonStyles = {
     padding: '0.5rem', // p-2
     width: '100%',
     minHeight: '100vh',
-    overflow: 'auto',
+    overflow: 'hidden',
   },
   mainContainer: {
     maxWidth: '56rem', // max-w-4xl
@@ -126,7 +126,6 @@ const HtmlPuzzle = () => {
     { id: 'header', label: '<header>', correct: false },
     { id: 'nav', label: '<nav>', correct: false },
     { id: 'section', label: '<section>', correct: false },
-    { id: 'article', label: '<article>', correct: false },
     { id: 'aside', label: '<aside>', correct: false },
     { id: 'footer', label: '<footer>', correct: false },
   ])
@@ -191,6 +190,25 @@ const HtmlPuzzle = () => {
       return () => clearTimeout(timer)
     }
   }, [hasError])
+
+  // Aplicar overflow:hidden a html y body cuando el componente se monte
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      // Guardar los estilos originales
+      const originalHTMLStyle = document.documentElement.style.overflow;
+      const originalBodyStyle = document.body.style.overflow;
+
+      // Aplicar overflow:hidden
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+
+      // Restaurar los estilos originales cuando el componente se desmonte
+      return () => {
+        document.documentElement.style.overflow = originalHTMLStyle;
+        document.body.style.overflow = originalBodyStyle;
+      };
+    }
+  }, []);
 
   // Eventos de arrastre para escritorio
   const handleDragStart = (e, piece, fromArea = null) => {
@@ -333,7 +351,7 @@ const HtmlPuzzle = () => {
   // Verificar si todas las piezas están en el lugar correcto
   const checkPuzzle = () => {
     // Verificamos que todas las áreas tengan una pieza
-    const allAreasHavePieces = ['header', 'nav', 'section', 'article', 'aside', 'footer']
+    const allAreasHavePieces = ['header', 'nav', 'section', 'aside', 'footer']
       .every(area => area in placedPieces);
 
     // Verificamos que todas las piezas estén en su lugar correcto
@@ -384,7 +402,6 @@ const HtmlPuzzle = () => {
       header: '#dbeafe', // bg-blue-100
       nav: '#fce7f3', // bg-pink-100
       section: '#d1fae5', // bg-green-100
-      article: '#ede9fe', // bg-purple-100
       aside: '#fef3c7', // bg-yellow-100
       footer: '#f0fdf4', // bg-green-50
     };
@@ -444,9 +461,9 @@ const HtmlPuzzle = () => {
 
   // Variables para especificar las alturas de forma consistente
   const heights = {
-    h12: '3rem', // h-12
-    h10: '2.5rem', // h-10
-    h28: '7rem', // h-28
+    h12: '4rem', // Increased from 3rem
+    h10: '3.5rem', // Increased from 2.5rem
+    h28: '14rem', // Increased from 7rem
     hFull: '100%', // h-full
   };
 
@@ -456,7 +473,8 @@ const HtmlPuzzle = () => {
       style={{
         ...noSelectStyle,
         ...(shakeScreen ? shakeAnimation : {}),
-        ...commonStyles.container
+        ...commonStyles.container,
+        overflow: 'hidden'
       }}
     >
       {isComplete && (
@@ -547,6 +565,7 @@ const HtmlPuzzle = () => {
             style={{
               ...commonStyles.panel,
               width: '12rem', // w-48
+              minHeight: '28rem', // Added minHeight for better vertical spacing
             }}
             data-drop-area="available"
             onDrop={(e) => handleDrop(e, 'available')}
@@ -590,6 +609,7 @@ const HtmlPuzzle = () => {
             style={{
               ...commonStyles.panel,
               flex: 1,
+              minHeight: '28rem', // Added minHeight for better vertical spacing
             }}
           >
             <div
@@ -626,9 +646,6 @@ const HtmlPuzzle = () => {
                 >
                   {/* Section */}
                   {renderPlacedPiece('section', heights.h28, 'bg-green-100')}
-
-                  {/* Article */}
-                  {renderPlacedPiece('article', heights.h28, 'bg-purple-100')}
                 </div>
 
                 {/* Aside */}
