@@ -27,16 +27,6 @@
   animation: bounce-slow 3s infinite;
 }
 
-/* Ocultar barras de desplazamiento */
-::-webkit-scrollbar {
-  display: none;
-}
-
-* {
-  -ms-overflow-style: none;  /* IE y Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
 /* Estilos críticos que podrían no cargarse correctamente con Tailwind */
 .blur-sm {
   filter: blur(4px);

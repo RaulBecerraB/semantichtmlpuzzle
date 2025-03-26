@@ -22,15 +22,14 @@ const commonStyles = {
   container: {
     backgroundColor: '#f3f4f6', // bg-gray-100
     padding: '0.5rem', // p-2
-    position: 'relative',
-    height: '100vh',
     width: '100%',
-    overflow: 'hidden',
+    minHeight: '100vh',
+    overflow: 'auto',
   },
   mainContainer: {
-    height: '100%',
     maxWidth: '56rem', // max-w-4xl
     margin: '0 auto',
+    paddingBottom: '2rem',
   },
   title: {
     fontSize: '1.5rem', // text-2xl
@@ -48,7 +47,7 @@ const commonStyles = {
   flexContainer: {
     display: 'flex',
     gap: '1rem', // gap-4
-    height: 'calc(100% - 10rem)',
+    marginTop: '1rem',
   },
   panel: {
     backgroundColor: 'white', // bg-white
@@ -88,7 +87,7 @@ const commonStyles = {
     backgroundColor: '#f9fafb', // hover:bg-gray-50
   },
   overlayStyle: {
-    position: 'absolute',
+    position: 'fixed', // Cambiar a fixed
     top: 0,
     right: 0,
     bottom: 0,
@@ -341,7 +340,7 @@ const HtmlPuzzle = () => {
 
   return (
     <div
-      className={`h-screen bg-gray-100 p-2 relative ${shakeScreen ? 'animate-shake' : ''}`}
+      className="bg-gray-100 p-2"
       style={{
         ...noSelectStyle,
         ...(shakeScreen ? shakeAnimation : {}),
@@ -351,7 +350,7 @@ const HtmlPuzzle = () => {
       {isComplete && (
         <>
           {/* Overlay borroso con mensaje de felicitación */}
-          <div className="absolute inset-0 backdrop-blur-sm bg-black/30 z-10 flex items-center justify-center"
+          <div className="fixed inset-0 backdrop-blur-sm bg-black/30 z-10 flex items-center justify-center"
             style={commonStyles.overlayStyle}>
             <div className="bg-white rounded-xl shadow-2xl p-8 text-center max-w-md mx-auto transform animate-bounce-slow"
               style={commonStyles.congratsBox}>
@@ -374,7 +373,7 @@ const HtmlPuzzle = () => {
         </>
       )}
       <div
-        className={`h-full max-w-4xl mx-auto ${isComplete ? 'blur-sm' : ''}`}
+        className={`max-w-4xl mx-auto ${isComplete ? 'blur-sm' : ''}`}
         style={{
           ...commonStyles.mainContainer,
           filter: isComplete ? 'blur(4px)' : 'none',
@@ -427,7 +426,7 @@ const HtmlPuzzle = () => {
         )}
 
         <div
-          className="flex gap-4 h-[calc(100%-10rem)]"
+          className="flex gap-4"
           style={commonStyles.flexContainer}
         >
           {/* Panel izquierdo con piezas arrastrables */}
@@ -476,11 +475,10 @@ const HtmlPuzzle = () => {
             }}
           >
             <div
-              className="grid gap-2 flex-grow"
+              className="grid gap-2"
               style={{
                 display: 'grid',
                 gap: '0.5rem',
-                flexGrow: 1,
                 gridTemplateRows: 'auto auto 1fr auto'
               }}
             >
