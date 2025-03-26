@@ -368,7 +368,7 @@ console.log(resultado);`
                         </div>
                     )}
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <h2 style={commonStyles.sectionTitle}>Corrige el código (hay 2 errores):</h2>
+                        <h2 style={commonStyles.sectionTitle}>Corrige el código (hay 1 error):</h2>
                         <textarea
                             value={fixedCode}
                             onChange={(e) => {
