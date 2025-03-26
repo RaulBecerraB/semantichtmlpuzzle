@@ -17,9 +17,7 @@ export default function RootLayout({ children }) {
         <main className="flex-grow">
           {children}
         </main>
-        <footer className="bg-gray-800 text-white text-center py-2">
-          Powered by AAAIMX Software Division
-        </footer>
+
       </body>
     </html>
   )

@@ -106,7 +106,7 @@ print(resultado)`
                     <div className="flex gap-4">
                         <button
                             onClick={checkSolution}
-                            className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600"
+                            className="bg-[#3b82f6] text-white px-6 py-2 rounded hover:bg-green-600"
                         >
                             Verificar solución
                         </button>

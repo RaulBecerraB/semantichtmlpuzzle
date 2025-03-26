@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Confetti from 'react-confetti'
 import CheckButton from './components/CheckButton'
 
@@ -143,6 +143,18 @@ const HtmlPuzzle = () => {
     height: 0
   })
 
+  // Referencias para manejo de touch events
+  const touchDragRef = useRef({
+    isDragging: false,
+    currentPiece: null,
+    fromArea: null,
+    startX: 0,
+    startY: 0,
+    currentTarget: null,
+    dropTarget: null
+  })
+  const elementsRef = useRef({})
+
   // Inicialización segura para las dimensiones de ventana
   useEffect(() => {
     // Función para obtener las dimensiones actuales
@@ -180,12 +192,22 @@ const HtmlPuzzle = () => {
     }
   }, [hasError])
 
+  // Eventos de arrastre para escritorio
   const handleDragStart = (e, piece, fromArea = null) => {
     setDraggedPiece({ ...piece, fromArea })
   }
 
   const handleDrop = (e, targetId) => {
     e.preventDefault()
+    processDrop(targetId)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+  }
+
+  // Función para procesar la caída (común para ambos desktop/mobile)
+  const processDrop = (targetId) => {
     if (draggedPiece) {
       // Si la pieza viene de otra área y se arrastra a la zona de piezas disponibles
       if (draggedPiece.fromArea && targetId === 'available') {
@@ -217,11 +239,95 @@ const HtmlPuzzle = () => {
 
       // Ocultar mensajes cuando se hace un cambio
       setShowMessage(false)
+      setDraggedPiece(null)
     }
   }
 
-  const handleDragOver = (e) => {
+  // Eventos táctiles para móviles
+  const handleTouchStart = (e, piece, fromArea = null) => {
+    // Prevenir el comportamiento de scroll nativo durante el arrastre
     e.preventDefault()
+
+    const touch = e.touches[0]
+    const target = e.currentTarget
+
+    // Guardar información del elemento que se está arrastrando
+    touchDragRef.current = {
+      isDragging: true,
+      currentPiece: piece,
+      fromArea: fromArea,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      currentTarget: target,
+      dropTarget: null
+    }
+
+    // Aplicar estilos para indicar que se está arrastrando
+    target.style.opacity = '0.6'
+    target.style.zIndex = '1000'
+
+    // Actualizar estado para mantener coherencia con la versión de escritorio
+    setDraggedPiece({ ...piece, fromArea })
+  }
+
+  const handleTouchMove = (e) => {
+    if (!touchDragRef.current.isDragging) return
+
+    const touch = e.touches[0]
+    const { currentTarget, startX, startY } = touchDragRef.current
+
+    // Calcular el desplazamiento
+    const offsetX = touch.clientX - startX
+    const offsetY = touch.clientY - startY
+
+    // Si estamos arrastrando un elemento, moverlo con el dedo
+    if (currentTarget) {
+      currentTarget.style.transform = `translate(${offsetX}px, ${offsetY}px)`
+    }
+
+    // Detectar área donde se está moviendo el dedo
+    const elementsUnderTouch = document.elementsFromPoint(touch.clientX, touch.clientY)
+
+    // Buscar el área de destino entre los elementos bajo el dedo
+    const dropArea = elementsUnderTouch.find(el =>
+      el.getAttribute('data-drop-area') !== null
+    )
+
+    // Actualizar área de destino actual
+    if (dropArea) {
+      touchDragRef.current.dropTarget = dropArea.getAttribute('data-drop-area')
+    } else {
+      touchDragRef.current.dropTarget = null
+    }
+  }
+
+  const handleTouchEnd = (e) => {
+    if (!touchDragRef.current.isDragging) return
+
+    const { currentTarget, dropTarget } = touchDragRef.current
+
+    // Restaurar estilos del elemento arrastrado
+    if (currentTarget) {
+      currentTarget.style.opacity = '1'
+      currentTarget.style.transform = 'translate(0, 0)'
+      currentTarget.style.zIndex = 'auto'
+    }
+
+    // Procesar el drop si tenemos un área de destino válida
+    if (dropTarget) {
+      processDrop(dropTarget)
+    }
+
+    // Reiniciar el estado de arrastre
+    touchDragRef.current = {
+      isDragging: false,
+      currentPiece: null,
+      fromArea: null,
+      startX: 0,
+      startY: 0,
+      currentTarget: null,
+      dropTarget: null
+    }
   }
 
   // Verificar si todas las piezas están en el lugar correcto
@@ -311,17 +417,23 @@ const HtmlPuzzle = () => {
 
     return (
       <div
+        data-drop-area={areaId}
         onDrop={(e) => handleDrop(e, areaId)}
         onDragOver={handleDragOver}
         className={`${height} rounded ${piece ? bgColor : 'bg-gray-200'} flex items-center justify-center text-sm`}
         style={areaStyle}
+        ref={el => elementsRef.current[`drop_${areaId}`] = el}
       >
         {piece ? (
           <div
             draggable
             onDragStart={(e) => handleDragStart(e, piece, areaId)}
+            onTouchStart={(e) => handleTouchStart(e, piece, areaId)}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             className="w-full h-full flex items-center justify-center cursor-move"
             style={pieceStyle}
+            ref={el => elementsRef.current[`piece_${piece.id}_${areaId}`] = el}
           >
             {piece.label}
           </div>
@@ -436,8 +548,10 @@ const HtmlPuzzle = () => {
               ...commonStyles.panel,
               width: '12rem', // w-48
             }}
+            data-drop-area="available"
             onDrop={(e) => handleDrop(e, 'available')}
             onDragOver={handleDragOver}
+            ref={el => elementsRef.current['drop_available'] = el}
           >
             <h2
               className="text-sm font-semibold text-gray-700 mb-2"
@@ -452,8 +566,12 @@ const HtmlPuzzle = () => {
                   key={piece.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, piece)}
+                  onTouchStart={(e) => handleTouchStart(e, piece)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   className="bg-white px-3 py-1 rounded shadow cursor-move hover:bg-gray-50 transition-colors text-sm"
                   style={commonStyles.pieceItem}
+                  ref={el => elementsRef.current[`piece_${piece.id}`] = el}
                 >
                   {piece.label}
                 </div>
@@ -528,3 +646,4 @@ const HtmlPuzzle = () => {
 }
 
 export default HtmlPuzzle
+
