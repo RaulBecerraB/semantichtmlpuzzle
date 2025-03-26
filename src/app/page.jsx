@@ -123,11 +123,11 @@ const commonStyles = {
 
 const HtmlPuzzle = () => {
   const [pieces, setPieces] = useState([
-    { id: 'header', label: '<header>', correct: false },
-    { id: 'nav', label: '<nav>', correct: false },
-    { id: 'section', label: '<section>', correct: false },
-    { id: 'aside', label: '<aside>', correct: false },
-    { id: 'footer', label: '<footer>', correct: false },
+    { id: 'header', label: '<header>', correct: false, color: '#dbeafe' }, // bg-blue-100
+    { id: 'nav', label: '<nav>', correct: false, color: '#fce7f3' }, // bg-pink-100
+    { id: 'section', label: '<section>', correct: false, color: '#d1fae5' }, // bg-green-100
+    { id: 'aside', label: '<aside>', correct: false, color: '#fee2e2' }, // bg-red-100
+    { id: 'footer', label: '<footer>', correct: false, color: '#f0fdf4' }, // bg-green-50
   ])
 
   const [placedPieces, setPlacedPieces] = useState({})
@@ -398,14 +398,8 @@ const HtmlPuzzle = () => {
 
   // Definimos los colores de fondo para las diferentes áreas
   const getAreaBgColor = (areaId) => {
-    const colors = {
-      header: '#dbeafe', // bg-blue-100
-      nav: '#fce7f3', // bg-pink-100
-      section: '#d1fae5', // bg-green-100
-      aside: '#fef3c7', // bg-yellow-100
-      footer: '#f0fdf4', // bg-green-50
-    };
-    return colors[areaId] || '#e5e7eb'; // Default: bg-gray-200
+    const piece = placedPieces[areaId];
+    return piece ? piece.color : '#e5e7eb'; // Default: bg-gray-200
   };
 
   // Renderizar una pieza colocada en una zona
@@ -413,7 +407,7 @@ const HtmlPuzzle = () => {
     const piece = placedPieces[areaId]
     const areaStyle = {
       height: height,
-      backgroundColor: piece ? getAreaBgColor(areaId) : '#e5e7eb', // bg-gray-200
+      backgroundColor: getAreaBgColor(areaId),
       borderRadius: '0.25rem', // rounded
       display: 'flex',
       alignItems: 'center',
@@ -589,7 +583,11 @@ const HtmlPuzzle = () => {
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
                   className="bg-white px-3 py-1 rounded shadow cursor-move hover:bg-gray-50 transition-colors text-sm"
-                  style={commonStyles.pieceItem}
+                  style={{
+                    ...commonStyles.pieceItem,
+                    backgroundColor: piece.color,
+                    color: '#374151' // text-gray-700
+                  }}
                   ref={el => elementsRef.current[`piece_${piece.id}`] = el}
                 >
                   {piece.label}
@@ -621,10 +619,10 @@ const HtmlPuzzle = () => {
               }}
             >
               {/* Header */}
-              {renderPlacedPiece('header', heights.h12, 'bg-blue-100')}
+              {renderPlacedPiece('header', heights.h12)}
 
               {/* Nav */}
-              {renderPlacedPiece('nav', heights.h10, 'bg-pink-100')}
+              {renderPlacedPiece('nav', heights.h10)}
 
               {/* Main content */}
               <div
@@ -645,15 +643,15 @@ const HtmlPuzzle = () => {
                   }}
                 >
                   {/* Section */}
-                  {renderPlacedPiece('section', heights.h28, 'bg-green-100')}
+                  {renderPlacedPiece('section', heights.h28)}
                 </div>
 
                 {/* Aside */}
-                {renderPlacedPiece('aside', heights.hFull, 'bg-yellow-100')}
+                {renderPlacedPiece('aside', heights.hFull)}
               </div>
 
               {/* Footer */}
-              {renderPlacedPiece('footer', heights.h12, 'bg-green-50')}
+              {renderPlacedPiece('footer', heights.h12)}
             </div>
           </div>
         </div>
